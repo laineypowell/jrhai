@@ -1,30 +1,35 @@
 use rhai::{Engine, EvalAltResult, Module, ModuleResolver, Position, Scope};
 use std::ffi::{c_char, CStr, CString};
 use std::rc::Rc;
+use std::str::Utf8Error;
 
-type JavaModuleResolver = extern "C" fn(*mut c_char) -> *mut c_char;
+type JavaModuleResolver = extern "C" fn(*const c_char) -> *const c_char;
 
 struct JrhaiModuleResolver {
     resolver: JavaModuleResolver,
 }
 
+fn c_str(ptr: *const c_char) -> Result<String, Utf8Error> {
+    let c_str = unsafe { CStr::from_ptr(ptr) };
+
+    let str = c_str.to_str()?;
+
+    Ok(str.to_owned())
+}
+
 impl ModuleResolver for JrhaiModuleResolver {
-    fn resolve(&self, engine: &Engine, source: Option<&str>, path: &str, pos: Position) -> Result<Rc<Module>, Box<EvalAltResult>> {
-        unsafe  {
-            let bytes = CString::new(path).expect("").into_raw();
+    fn resolve(&self, engine: &Engine, _source: Option<&str>, path: &str, _pos: Position) -> Result<Rc<Module>, Box<EvalAltResult>> {
+        let c_string = CString::new(path).expect("").into_raw();
 
-            let script_ptr = (self.resolver)(bytes);
+        let script_ptr = (self.resolver)(c_string);
 
-            let c_str = CStr::from_ptr(script_ptr);
+        let script = c_str(script_ptr).expect("");
 
-            let script = c_str.to_str().expect("");
+        let ast = engine.compile(script)?;
 
-            let ast = engine.compile(script)?;
+        let module = Module::eval_ast_as_new(Scope::new(), &ast, &engine)?;
 
-            let module = Module::eval_ast_as_new(Scope::new(), &ast, &engine)?;
-
-            Ok(Rc::new(module))
-        }
+        Ok(Rc::new(module))
     }
 }
 
@@ -41,11 +46,9 @@ pub extern "C" fn destroy_engine(engine: *mut Engine) {
 #[unsafe(no_mangle)]
 pub extern "C" fn engine_run(engine: *mut Engine, script: *const c_char) {
     unsafe {
-        let c_str = CStr::from_ptr(script);
+        let str = c_str(script).expect("");
 
-        let run_script = c_str.to_str().expect("");
-
-        (*engine).run(run_script).expect("");
+        (*engine).run(&*str).expect("");
     }
 }
 

@@ -21,7 +21,7 @@ public final class Engine {
     }
 
     public void setModuleResolver(ModuleResolver resolver) throws Throwable {
-        jrhai.setEngineSetModuleResolver(engine, resolver);
+        jrhai.engineSetModuleResolver(engine, resolver);
     }
 
     public void destroy() throws Throwable {

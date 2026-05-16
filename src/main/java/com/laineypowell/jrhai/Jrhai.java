@@ -9,8 +9,6 @@ import java.lang.invoke.MethodType;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
-import static org.lwjgl.system.MemoryUtil.memGetByte;
-
 public final class Jrhai {
     private final Linker linker;
 
@@ -69,22 +67,8 @@ public final class Jrhai {
         return engineRun;
     }
 
-    public void setEngineSetModuleResolver(MemorySegment engine, ModuleResolver resolver) throws Throwable {
-        var obj = new Object() {
-            public MemorySegment resolve(long address, long length) {
-                try (var arena = Arena.ofConfined()) {
-                    var bytes = new byte[(int) (length -= 1)];
-                    for (var i = 0; i < length; i++) {
-                        bytes[i] = memGetByte(address + i);
-                    }
-
-                    return arena.allocateFrom(resolver.resolve(new String(bytes)));
-                }
-            }
-
-        };
-
-        var target = MethodHandles.lookup().findVirtual(obj.getClass(), "resolve", MethodType.methodType(MemorySegment.class, long.class, long.class)).bindTo(obj);
+    public void engineSetModuleResolver(MemorySegment engine, ModuleResolver resolver) throws Throwable {
+        var target = MethodHandles.lookup().findVirtual(resolver.getClass(), "resolve", MethodType.methodType(MemorySegment.class, long.class, long.class)).bindTo(resolver);
 
         engineSetModuleResolver.invoke(engine, linker.upcallStub(target, FunctionDescriptor.of(ValueLayout.ADDRESS, ValueLayout.JAVA_LONG, ValueLayout.JAVA_LONG), shared));
     }
