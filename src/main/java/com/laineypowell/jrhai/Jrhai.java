@@ -73,7 +73,7 @@ public final class Jrhai {
         var obj = new Object() {
             public MemorySegment resolve(long address, long length) {
                 try (var arena = Arena.ofConfined()) {
-                    var bytes = new byte[(int) length];
+                    var bytes = new byte[(int) (length -= 1)];
                     for (var i = 0; i < length; i++) {
                         bytes[i] = memGetByte(address + i);
                     }
