@@ -17,8 +17,8 @@ public class Jrhai {
         var path = Paths.get("jrhai.dll");
 
         if (!Files.isRegularFile(path)) {
-            try (var inputStream = Jrhai.class.getClassLoader().getResource("jrhai.dll").openStream(); var outputStream = Files.newOutputStream(path)) {
-                inputStream.transferTo(outputStream);
+            try (var inputStream = Jrhai.class.getClassLoader().getResource("jrhai.dll").openStream()) {
+                Files.copy(inputStream, path);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }

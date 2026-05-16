@@ -20,6 +20,21 @@ tasks.test {
     useJUnitPlatform()
 }
 
+val cargo = tasks.register<Exec>("buildCargo") {
+    workingDir("./jrhai")
+
+    commandLine("cargo", "build", "--release")
+}
+
+tasks.processResources {
+    dependsOn(cargo)
+
+    from("./jrhai/target/release") {
+        include("*.dll")
+    }
+
+}
+
 publishing {
     publications {
         register<MavenPublication>("maven") {

@@ -42,4 +42,6 @@ bin/
 ### Mac OS ###
 .DS_Store
 /.idea/
-*.dll
+**/.idea/
+**/target/
+/jrhai.dll
