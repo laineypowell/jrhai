@@ -45,3 +45,4 @@ bin/
 **/.idea/
 **/target/
 /jrhai.dll
+/*.log
