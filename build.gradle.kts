@@ -1,9 +1,5 @@
-import org.lwjgl.Lwjgl
-import org.lwjgl.lwjgl
-
 plugins {
     id("java")
-    id("org.lwjgl.plugin") version "0.0.35"
     `maven-publish`
 }
 
@@ -18,10 +14,6 @@ dependencies {
     testImplementation(platform("org.junit:junit-bom:6.0.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-
-    lwjgl {
-        implementation(Lwjgl.Module.core)
-    }
 }
 
 tasks.test {
@@ -40,7 +32,6 @@ tasks.processResources {
     from("./jrhai/target/release") {
         include("*.dll")
     }
-
 }
 
 publishing {

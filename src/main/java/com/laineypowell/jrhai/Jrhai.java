@@ -12,8 +12,6 @@ import java.nio.file.Paths;
 public final class Jrhai {
     private final Linker linker;
 
-    private final Arena shared;
-
     private final MethodHandle createEngine;
 
     private final MethodHandle destroyEngine;
@@ -37,8 +35,6 @@ public final class Jrhai {
         System.load(path.toAbsolutePath().toString());
 
         linker = Linker.nativeLinker();
-
-        shared = Arena.ofShared();
 
         var lookup = SymbolLookup.loaderLookup();
 
@@ -70,7 +66,7 @@ public final class Jrhai {
     public void engineSetModuleResolver(MemorySegment engine, ModuleResolver resolver) throws Throwable {
         var target = MethodHandles.lookup().findVirtual(resolver.getClass(), "resolve", MethodType.methodType(MemorySegment.class, long.class, long.class)).bindTo(resolver);
 
-        engineSetModuleResolver.invoke(engine, linker.upcallStub(target, FunctionDescriptor.of(ValueLayout.ADDRESS, ValueLayout.JAVA_LONG, ValueLayout.JAVA_LONG), shared));
+        engineSetModuleResolver.invoke(engine, linker.upcallStub(target, FunctionDescriptor.of(ValueLayout.ADDRESS, ValueLayout.JAVA_LONG, ValueLayout.JAVA_LONG), Arena.global()));
     }
 
 }
